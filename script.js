@@ -52,7 +52,6 @@ const sources = {
 
 let allNews = [];
 
-// رندر دکمه‌های دسته‌بندی
 function renderTabs() {
   const tabs = document.getElementById('category-tabs');
   Object.keys(categories).forEach(cat => {
@@ -81,12 +80,6 @@ function extractImage(desc) {
   return match ? match[1] : "";
 }
 
-// کدگذاری اطلاعات خبر برای URL
-function encodeNews(news) {
-  return btoa(encodeURIComponent(JSON.stringify(news)));
-}
-
-// بارگذاری اخبار
 async function loadNews() {
   allNews = [];
   const promises = [];
@@ -119,37 +112,9 @@ async function loadNews() {
   document.querySelector('.loading').style.display = 'none';
 }
 
-// رندر اخبار
 function renderNews(category) {
   const container = document.getElementById('news-container');
   const filtered = category === 'all' ? allNews : allNews.filter(n => n.category === category);
   
   if (filtered.length === 0) {
     container.innerHTML = `<p class="no-news">خبری یافت نشد.</p>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(news => `
-    <article class="news-card" data-href="article.html?news=${encodeNews(news)}">
-      ${news.image ? `<div class="news-img" style="background-image: url('${news.image}')"></div>` : ''}
-      <div class="news-content">
-        <span class="category-badge">${categories[news.category]}</span>
-        <h3>${news.title}</h3>
-        <p>${news.desc.substring(0, 130)}${news.desc.length > 130 ? "…" : ""}</p>
-      </div>
-    </article>
-  `).join('');
-
-  // کلیک روی کارت → رفتن به article.html
-  document.querySelectorAll('.news-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      window.location.href = card.dataset.href;
-    });
-  });
-}
-
-// راه‌اندازی
-document.addEventListener('DOMContentLoaded', () => {
-  renderTabs();
-  loadNews();
-});
