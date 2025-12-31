@@ -18,21 +18,23 @@ body{
   color:var(--text);
 }
 
+/* ===== خبر فوری ===== */
 #breaking{
   background:#000;
   color:#fff;
   text-align:center;
-  padding:8px;
+  padding:8px 10px;
   font-size:14px;
 }
 
+/* ===== هدر ===== */
 header{
   position:sticky;
   top:0;
   background:var(--primary);
   color:#fff;
   padding:10px;
-  z-index:10;
+  z-index:100;
 }
 
 .top{
@@ -50,15 +52,17 @@ header{
   background:none;
   border:none;
   color:#fff;
-  font-size:18px;
+  font-size:20px;
   cursor:pointer;
 }
 
+/* ===== دسته‌بندی ===== */
 nav{
   margin-top:8px;
   display:flex;
   gap:10px;
   overflow-x:auto;
+  padding-bottom:4px;
 }
 
 nav button{
@@ -69,12 +73,14 @@ nav button{
   border-radius:20px;
   font-size:13px;
   white-space:nowrap;
+  cursor:pointer;
 }
 
 nav button.active{
   background:#ffd6d6;
 }
 
+/* ===== لیست اخبار ===== */
 main{
   padding:10px;
   display:grid;
@@ -83,9 +89,12 @@ main{
 }
 
 @media(max-width:600px){
-  main{grid-template-columns:1fr;}
+  main{
+    grid-template-columns:1fr;
+  }
 }
 
+/* ===== کارت خبر ===== */
 .card{
   background:var(--card);
   border-radius:14px;
@@ -132,6 +141,7 @@ main{
   cursor:pointer;
 }
 
+/* ===== فوتر ===== */
 footer{
   text-align:center;
   font-size:12px;
