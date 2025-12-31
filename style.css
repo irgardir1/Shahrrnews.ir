@@ -18,7 +18,7 @@ body{
   color:var(--text);
 }
 
-/* ===== خبر فوری ===== */
+/* خبر فوری */
 #breaking{
   background:#000;
   color:#fff;
@@ -27,7 +27,7 @@ body{
   font-size:14px;
 }
 
-/* ===== هدر ===== */
+/* هدر */
 header{
   position:sticky;
   top:0;
@@ -56,7 +56,7 @@ header{
   cursor:pointer;
 }
 
-/* ===== دسته‌بندی ===== */
+/* دسته‌بندی */
 nav{
   margin-top:8px;
   display:flex;
@@ -80,7 +80,7 @@ nav button.active{
   background:#ffd6d6;
 }
 
-/* ===== لیست اخبار ===== */
+/* لیست اخبار */
 main{
   padding:10px;
   display:grid;
@@ -94,7 +94,7 @@ main{
   }
 }
 
-/* ===== کارت خبر ===== */
+/* کارت خبر */
 .card{
   background:var(--card);
   border-radius:14px;
@@ -141,7 +141,7 @@ main{
   cursor:pointer;
 }
 
-/* ===== فوتر ===== */
+/* فوتر */
 footer{
   text-align:center;
   font-size:12px;
