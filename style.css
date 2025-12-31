@@ -1,122 +1,140 @@
-const rssSources = {
-  "سیاسی": [
-    "https://www.shahrekhabar.com/rss.aspx?cat=1"
-  ],
-  "اقتصادی": [
-    "https://www.shahrekhabar.com/rss.aspx?cat=2"
-  ],
-  "ورزشی": [
-    "https://www.shahrekhabar.com/rss.aspx?cat=3"
-  ],
-  "تکنولوژی": [
-    "https://www.shahrekhabar.com/rss.aspx?cat=4"
-  ]
-};
-
-const newsEl = document.getElementById("news");
-const catEl = document.getElementById("categories");
-const breakingEl = document.getElementById("breaking");
-const darkBtn = document.getElementById("darkBtn");
-
-/* ساخت دکمه دسته‌ها */
-Object.keys(rssSources).forEach((cat, i) => {
-  const btn = document.createElement("button");
-  btn.textContent = cat;
-  if (i === 0) btn.classList.add("active");
-  btn.onclick = () => loadCategory(cat, btn);
-  catEl.appendChild(btn);
-});
-
-/* بارگذاری RSS با rss2json (بدون CORS) */
-async function loadCategory(cat, btn) {
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  btn.classList.add("active");
-
-  newsEl.innerHTML = "در حال دریافت اخبار...";
-  let allItems = [];
-
-  for (const rss of rssSources[cat]) {
-    const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rss)}`;
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (data.items) {
-        allItems.push(...data.items);
-      }
-    } catch (e) {
-      console.error("RSS Error:", e);
-    }
-  }
-
-  renderNews(allItems);
+:root{
+  --primary:#c62828;
+  --bg:#f4f4f4;
+  --card:#ffffff;
+  --text:#222;
 }
 
-/* نمایش خبرها */
-function renderNews(items) {
-  newsEl.innerHTML = "";
-
-  if (!items.length) {
-    newsEl.innerHTML = "خبری یافت نشد";
-    return;
-  }
-
-  items.slice(0, 20).forEach((item, idx) => {
-    if (idx === 0) {
-      breakingEl.textContent = "🔔 خبر فوری: " + item.title;
-    }
-
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-      <img src="${item.thumbnail || `https://source.unsplash.com/600x400/?news,${idx}`}">
-      <div class="content">
-        <h3>${item.title}</h3>
-        <div class="meta">
-          ${new Date(item.pubDate).toLocaleDateString("fa-IR")}
-        </div>
-        <p>${stripHTML(item.description).slice(0,120)}...</p>
-        <a href="${item.link}" target="_blank">مشاهده خبر</a>
-        <br>
-        <button class="fav" onclick="toggleFav('${escapeQuotes(item.title)}','${item.link}')">❤️</button>
-      </div>
-    `;
-    newsEl.appendChild(card);
-  });
+body.dark{
+  --bg:#121212;
+  --card:#1e1e1e;
+  --text:#eee;
 }
 
-/* حذف تگ‌های HTML */
-function stripHTML(html) {
-  const div = document.createElement("div");
-  div.innerHTML = html || "";
-  return div.textContent || div.innerText || "";
+body{
+  margin:0;
+  font-family:tahoma, sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-/* جلوگیری از شکستن onclick */
-function escapeQuotes(text){
-  return text.replace(/'/g, "\\'");
+#breaking{
+  background:#000;
+  color:#fff;
+  text-align:center;
+  padding:8px;
+  font-size:14px;
 }
 
-/* علاقه‌مندی */
-function toggleFav(title, link) {
-  let favs = JSON.parse(localStorage.getItem("favs") || "[]");
-  const index = favs.findIndex(f => f.link === link);
-
-  if (index > -1) {
-    favs.splice(index, 1);
-  } else {
-    favs.push({ title, link });
-  }
-
-  localStorage.setItem("favs", JSON.stringify(favs));
+header{
+  position:sticky;
+  top:0;
+  background:var(--primary);
+  color:#fff;
+  padding:10px;
+  z-index:10;
 }
 
-/* دارک مود */
-darkBtn.onclick = () => {
-  document.body.classList.toggle("dark");
-};
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
 
-/* بارگذاری اولیه */
-loadCategory(
-  Object.keys(rssSources)[0],
-  document.querySelector("nav button")
-);
+.top h1{
+  font-size:18px;
+  margin:0;
+}
+
+#darkBtn{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:18px;
+  cursor:pointer;
+}
+
+nav{
+  margin-top:8px;
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+}
+
+nav button{
+  background:#fff;
+  color:var(--primary);
+  border:none;
+  padding:6px 14px;
+  border-radius:20px;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+nav button.active{
+  background:#ffd6d6;
+}
+
+main{
+  padding:10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:12px;
+}
+
+@media(max-width:600px){
+  main{grid-template-columns:1fr;}
+}
+
+.card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+  overflow:hidden;
+}
+
+.card img{
+  width:100%;
+  height:180px;
+  object-fit:cover;
+}
+
+.content{
+  padding:12px;
+}
+
+.content h3{
+  font-size:15px;
+  margin:0 0 6px;
+}
+
+.meta{
+  font-size:12px;
+  opacity:.7;
+  margin-bottom:6px;
+}
+
+.content p{
+  font-size:13px;
+  line-height:1.8;
+}
+
+.content a{
+  color:var(--primary);
+  text-decoration:none;
+  font-size:13px;
+}
+
+.fav{
+  background:none;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+}
+
+footer{
+  text-align:center;
+  font-size:12px;
+  opacity:.6;
+  padding:12px;
+}
