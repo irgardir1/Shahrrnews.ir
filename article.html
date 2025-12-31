@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title id="page-title">خبر</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
+  <style>
+    .article-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 30px;
+      margin-top: 20px;
+    }
+    .article-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .sidebar-ad {
+      background: #f1f5f9;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    @media (max-width: 900px) {
+      .article-layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-ad {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>خبرخوان ایرانی</h1>
+    </div>
+  </header>
+
+  <div class="container">
+    <a href="index.html" class="back-link">← بازگشت به لیست اخبار</a>
+    <div class="article-layout">
+      <div class="article-content">
+        <h1 id="article-title"></h1>
+        <div id="article-image" style="margin: 20px 0;"></div>
+        <div id="article-content" style="line-height: 1.8; color: #334155;"></div>
+        <p><a id="original-link" target="_blank" rel="noopener" style="color: #f97316; text-decoration: none;">مشاهده در سایت منبع</a></p>
+      </div>
+      <div class="sidebar-ad">
+        <!-- جای تبلیغ شما -->
+        <div style="background: white; padding: 15px; border-radius: 8px;">
+          <strong>تبلیغات</strong><br>
+          می‌توانید کد تبلیغ (مثل گوگل ادز یا بنر) را اینجا قرار دهید.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function decodeNews(encoded) {
+      try {
+        return JSON.parse(decodeURIComponent(atob(encoded)));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // خواندن پارامتر URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const encodedNews = urlParams.get('news');
+
+    if (!encodedNews) {
+      document.getElementById('article-title').textContent = 'خطا: خبری یافت نشد.';
+    } else {
+      const news = decodeNews(encodedNews);
+      if (!news) {
+        document.getElementById('article-title').textContent = 'خطا در بارگذاری خبر.';
+      } else {
+        document.getElementById('page-title').textContent = news.title;
+        document.getElementById('article-title').textContent = news.title;
+        if (news.image) {
+          document.getElementById('article-image').innerHTML = `<img src="${news.image}" style="width:100%; border-radius:8px;">`;
+        }
+        document.getElementById('article-content').textContent = news.desc;
+        const linkEl = document.getElementById('original-link');
+        if (news.link) {
+          linkEl.href = news.link;
+        } else {
+          linkEl.style.display = 'none';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
