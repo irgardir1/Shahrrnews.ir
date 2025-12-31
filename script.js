@@ -1,5 +1,5 @@
 /* =======================
-   دسته‌بندی‌ها
+   دسته‌بندی‌ها فارسی
 ======================= */
 const categories = {
   all: "همه اخبار",
@@ -12,6 +12,21 @@ const categories = {
   cinema: "سینما و هنر",
   game: "بازی و گیم",
   international: "بین‌الملل"
+};
+
+/* =======================
+   دسته‌ها انگلیسی برای Unsplash
+======================= */
+const categoryMap = {
+  political: "politics",
+  economic: "economy",
+  sport: "sports",
+  science: "science",
+  cultural: "culture",
+  market: "market",
+  cinema: "cinema",
+  game: "gaming",
+  international: "international"
 };
 
 /* =======================
@@ -76,9 +91,10 @@ Object.keys(categories).forEach((key, i) => {
 });
 
 /* =======================
-   دریافت تصویر هوشمند بر اساس عنوان + دسته
+   دریافت تصویر هوشمند
 ======================= */
-function getSmartImage(title, category) {
+function getSmartImage(title, categoryKey) {
+  const category = categoryMap[categoryKey] || 'news';
   const keyword = encodeURIComponent(category + " " + title);
   return `https://source.unsplash.com/600x400/?${keyword}`;
 }
@@ -138,7 +154,7 @@ function renderNews(items, catKey) {
       breakingEl.textContent = "🔔 خبر فوری: " + item.title;
     }
 
-    const imgUrl = item.thumbnail || getSmartImage(item.title, categories[catKey] || 'news');
+    const imgUrl = item.thumbnail || getSmartImage(item.title, catKey);
 
     const card = document.createElement("div");
     card.className = "card";
