@@ -1,6 +1,4 @@
-/* =======================
-   دسته‌بندی‌ها فارسی
-======================= */
+/* دسته‌بندی‌ها فارسی */
 const categories = {
   all: "همه اخبار",
   political: "سیاسی",
@@ -14,9 +12,7 @@ const categories = {
   international: "بین‌الملل"
 };
 
-/* =======================
-   دسته‌ها انگلیسی برای Unsplash
-======================= */
+/* دسته‌ها انگلیسی برای Unsplash */
 const categoryMap = {
   political: "politics",
   economic: "economy",
@@ -29,9 +25,7 @@ const categoryMap = {
   international: "international"
 };
 
-/* =======================
-   منابع RSS
-======================= */
+/* منابع RSS — بدون فاصله اضافه! */
 const sources = {
   political: [
     { name: "خبرگزاری جمهوری اسلامی", url: "https://www.irna.ir/rss/tp/1" },
@@ -71,17 +65,13 @@ const sources = {
   ]
 };
 
-/* =======================
-   عناصر DOM
-======================= */
+/* عناصر DOM */
 const newsEl = document.getElementById("news");
 const catEl = document.getElementById("categories");
 const breakingEl = document.getElementById("breaking");
 const darkBtn = document.getElementById("darkBtn");
 
-/* =======================
-   ساخت منوی دسته‌ها
-======================= */
+/* ساخت منوی دسته‌ها */
 Object.keys(categories).forEach((key, i) => {
   const btn = document.createElement("button");
   btn.textContent = categories[key];
@@ -90,16 +80,13 @@ Object.keys(categories).forEach((key, i) => {
   catEl.appendChild(btn);
 });
 
-/* =======================
-   دریافت تصویر هوشمند
-======================= */
-function getSmartImage(title, categoryKey) {
- const imgUrl = item.thumbnail || 'https://source.unsplash.com/600x400/?news';
+/* دریافت تصویر هوشمند */
+function getSmartImage(categoryKey) {
+  const fallbackTerm = categoryMap[categoryKey] || "news";
+  return `https://source.unsplash.com/600x400/?${fallbackTerm}`;
 }
 
-/* =======================
-   بارگذاری دسته
-======================= */
+/* بارگذاری دسته */
 async function loadCategory(catKey, btn) {
   document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
@@ -107,13 +94,9 @@ async function loadCategory(catKey, btn) {
   newsEl.innerHTML = "در حال دریافت اخبار...";
   let items = [];
 
-  let rssList = [];
-
-  if (catKey === "all") {
-    Object.values(sources).forEach(arr => rssList.push(...arr));
-  } else {
-    rssList = sources[catKey] || [];
-  }
+  let rssList = catKey === "all" 
+    ? Object.values(sources).flat() 
+    : sources[catKey] || [];
 
   for (const src of rssList) {
     const api = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(src.url)}`;
@@ -121,14 +104,14 @@ async function loadCategory(catKey, btn) {
       const res = await fetch(api);
       const data = await res.json();
 
-      if (data.items) {
+      if (data.status === "ok" && data.items) {
         data.items.forEach(item => {
           item.sourceName = src.name;
           items.push(item);
         });
       }
     } catch (e) {
-      console.error("RSS Error:", src.name);
+      console.error("RSS Error:", src.name, e);
     }
   }
 
@@ -136,9 +119,7 @@ async function loadCategory(catKey, btn) {
   renderNews(items, catKey);
 }
 
-/* =======================
-   نمایش خبرها
-======================= */
+/* نمایش خبرها */
 function renderNews(items, catKey) {
   newsEl.innerHTML = "";
 
@@ -149,34 +130,32 @@ function renderNews(items, catKey) {
 
   items.slice(0, 30).forEach((item, idx) => {
     if (idx === 0) {
-      breakingEl.textContent = "🔔 خبر فوری: " + item.title;
+      breakingEl.textContent = "🔔 خبر فوری: " + stripHTML(item.title);
     }
 
-    const imgUrl = item.thumbnail || getSmartImage(item.title, catKey);
+    const imgUrl = item.thumbnail || getSmartImage(catKey);
 
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <img src="${imgUrl}">
+      <img src="${imgUrl}" onerror="this.src='https://source.unsplash.com/600x400/?news'">
       <div class="content">
-        <h3>${item.title}</h3>
+        <h3>${stripHTML(item.title)}</h3>
         <div class="meta">
           ${item.sourceName} •
           ${new Date(item.pubDate).toLocaleDateString("fa-IR")}
         </div>
         <p>${stripHTML(item.description).slice(0,120)}...</p>
-        <a href="${item.link}" target="_blank">مشاهده خبر</a>
+        <a href="${item.link}" target="_blank" rel="noopener">مشاهده خبر</a>
         <br>
-        <button class="fav" onclick="toggleFav('${escapeQuotes(item.title)}','${item.link}')">❤️</button>
+        <button class="fav" onclick="toggleFav('${escapeQuotes(stripHTML(item.title))}','${item.link}')">❤️</button>
       </div>
     `;
     newsEl.appendChild(card);
   });
 }
 
-/* =======================
-   ابزارها
-======================= */
+/* ابزارها */
 function stripHTML(html) {
   const div = document.createElement("div");
   div.innerHTML = html || "";
@@ -187,27 +166,18 @@ function escapeQuotes(text) {
   return text.replace(/'/g, "\\'");
 }
 
-/* =======================
-   علاقه‌مندی
-======================= */
 function toggleFav(title, link) {
   let favs = JSON.parse(localStorage.getItem("favs") || "[]");
   const i = favs.findIndex(f => f.link === link);
-
   if (i > -1) favs.splice(i, 1);
   else favs.push({ title, link });
-
   localStorage.setItem("favs", JSON.stringify(favs));
 }
 
-/* =======================
-   دارک مود
-======================= */
+/* دارک مود */
 darkBtn.onclick = () => {
   document.body.classList.toggle("dark");
 };
 
-/* =======================
-   بارگذاری اولیه
-======================= */
+/* بارگذاری اولیه */
 loadCategory("all", document.querySelector("nav button"));
