@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>خبرخوان من</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- فونت فارسی اختیاری (Vazir) -->
+  <link href="https://v1.fontapi.ir/css/Vazir" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <h1>خبرخوان ایرانی</h1>
+    <p>آخرین اخبار از معتبرترین منابع</p>
+  </header>
+
+  <main>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showCategory('all')">همه</button>
+      <button class="tab-btn" onclick="showCategory('political')">سیاسی</button>
+      <button class="tab-btn" onclick="showCategory('economic')">اقتصادی</button>
+      <button class="tab-btn" onclick="showCategory('sport')">ورزشی</button>
+      <button class="tab-btn" onclick="showCategory('science')">علمی</button>
+      <button class="tab-btn" onclick="showCategory('cultural')">فرهنگی و هنری</button>
+      <button class="tab-btn" onclick="showCategory('market')">بازار</button>
+      <button class="tab-btn" onclick="showCategory('cinema')">سینما و هنر</button>
+      <button class="tab-btn" onclick="showCategory('game')">بازی و گیم</button>
+      <button class="tab-btn" onclick="showCategory('international')">بین‌الملل</button>
+    </div>
+
+    <div id="news-container">
+      <!-- اخبار اینجا لود می‌شوند -->
+    </div>
+  </main>
+
+  <!-- Modal برای نمایش خبر -->
+  <div id="news-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2 id="modal-title"></h2>
+      <div id="modal-image" class="modal-image"></div>
+      <div id="modal-content" class="modal-text"></div>
+      <p><a id="modal-link" target="_blank" rel="noopener">مشاهده خبر کامل در سایت منبع</a></p>
+    </div>
+  </div>
+
+  <script>
+    // منابع خبری + دسته‌بندی
+    const categories = {
+      political: [
+        { name: "خبرگزاری جمهوری اسلامی", url: "https://www.irna.ir/rss/tp/1" },
+        { name: "خبرآنلاین - سیاسی", url: "https://www.khabaronline.ir/rss/tp/1" }
+      ],
+      economic: [
+        { name: "اقتصاد آنلاین", url: "https://www.eghtesadonline.com/rss" },
+        { name: "ایسنا - اقتصادی", url: "https://www.isna.ir/rss/tp/33" }
+      ],
+      sport: [
+        { name: "ورزش سه", url: "https://www.varzesh3.com/rss" },
+        { name: "خبرگزاری فارس - ورزشی", url: "https://www.farsnews.ir/rss/tp/6" }
+      ],
+      science: [
+        { name: "ایسنا - علمی", url: "https://www.isna.ir/rss/tp/60" },
+        { name: "خبرگزاری دانشجو - علمی", url: "https://www.isna.ir/rss/tp/180" }
+      ],
+      cultural: [
+        { name: "خبرگزاری مهر - فرهنگی", url: "https://www.mehrnews.com/rss/tp/4" },
+        { name: "ایسنا - فرهنگی", url: "https://www.isna.ir/rss/tp/5" }
+      ],
+      market: [
+        { name: "بورس نیوز", url: "https://www.boursenews.ir/rss" },
+        { name: "کالا نیوز", url: "https://www.kalanews.ir/rss" }
+      ],
+      cinema: [
+        { name: "تسنیم - سینما", url: "https://www.tasnimnews.com/rss/tp/14" },
+        { name: "ایمنا - سینما", url: "https://www.ayandnews.ir/rss/tp/18" },
+        { name: "مهر - هنر", url: "https://www.mehrnews.com/rss/tp/4" }
+      ],
+      game: [
+        { name: "دیجی‌رُند", url: "https://digi-rund.ir/feed/" },
+        { name: "گیمگپ", url: "https://gamegap.ir/feed/" }
+      ],
+      international: [
+        { name: "خبرگزاری جمهوری اسلامی - بین‌الملل", url: "https://www.irna.ir/rss/tp/7" },
+        { name: "خبرآنلاین - بین‌الملل", url: "https://www.khabaronline.ir/rss/tp/3" }
+      ]
+    };
+
+    let allNews = [];
+
+    async function fetchNews() {
+      const container = document.getElementById("news-container");
+      container.innerHTML = "<p class='loading'>در حال بارگذاری اخبار...</p>";
+      allNews = [];
+
+      for (const [catId, sources] of Object.entries(categories)) {
+        for (const source of sources) {
+          try {
+            const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(source.url)}`);
+            const data = await res.json();
+            if (data.status === "ok") {
+              data.items.slice(0, 3).forEach(item => {
+                allNews.push({
+                  title: cleanText(item.title),
+                  desc: cleanText(item.description),
+                  link: item.link,
+                  image: item.thumbnail || extractImageFromDesc(item.description) || '',
+                  category: catId
+                });
+              });
+            }
+          } catch (e) {
+            console.warn(`خطا در بارگذاری ${source.name}:`, e);
+          }
+        }
+      }
+
+      renderNews('all');
+    }
+
+    function cleanText(html) {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      return div.innerText || div.textContent || "";
+    }
+
+    function extractImageFromDesc(desc) {
+      const imgMatch = desc.match(/<img[^>]+src="([^">]+)"/);
+      return imgMatch ? imgMatch[1] : '';
+    }
+
+    function renderNews(category) {
+      const container = document.getElementById("news-container");
+      let filtered = category === 'all' ? allNews : allNews.filter(n => n.category === category);
+      if (filtered.length === 0) {
+        container.innerHTML = "<p>خبری در این دسته‌بندی یافت نشد.</p>";
+        return;
+      }
+
+      container.innerHTML = filtered.map((news, i) => `
+        <div class="news-card" onclick="openModal(${JSON.stringify(news)})">
+          ${news.image ? `<img src="${news.image}" alt="تصویر خبر" class="news-img">` : ''}
+          <div class="news-content">
+            <h3>${news.title}</h3>
+            <p class="desc">${news.desc.substring(0, 120)}${news.desc.length > 120 ? "..." : ""}</p>
+            <span class="category-tag">${getCategoryLabel(news.category)}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getCategoryLabel(catId) {
+      const labels = {
+        political: "سیاسی",
+        economic: "اقتصادی",
+        sport: "ورزشی",
+        science: "علمی",
+        cultural: "فرهنگی",
+        market: "بازار",
+        cinema: "سینما",
+        game: "بازی",
+        international: "بین‌الملل"
+      };
+      return labels[catId] || catId;
+    }
+
+    function openModal(news) {
+      document.getElementById("modal-title").innerText = news.title;
+      document.getElementById("modal-content").innerText = cleanText(news.desc);
+      const imgDiv = document.getElementById("modal-image");
+      if (news.image) {
+        imgDiv.innerHTML = `<img src="${news.image}" style="max-width:100%; height:auto;">`;
+      } else {
+        imgDiv.innerHTML = "";
+      }
+      document.getElementById("modal-link").href = news.link;
+      document.getElementById("news-modal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("news-modal").style.display = "none";
+    }
+
+    function showCategory(cat) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      renderNews(cat);
+    }
+
+    // بستن Modal با کلیک خارج از آن
+    window.onclick = function(e) {
+      const modal = document.getElementById("news-modal");
+      if (e.target === modal) closeModal();
+    };
+
+    // شروع بارگذاری
+    fetchNews();
+  </script>
+</body>
+</html>
