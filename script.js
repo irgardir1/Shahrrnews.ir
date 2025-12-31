@@ -118,3 +118,100 @@ function renderNews(category) {
   
   if (filtered.length === 0) {
     container.innerHTML = `<p class="no-news">خبری یافت نشد.</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(news => `
+    <article class="news-card" data-link="${news.link}" data-title="${news.title}" data-image="${news.image}">
+      ${news.image ? `<div class="news-img" style="background-image: url('${news.image}')"></div>` : ''}
+      <div class="news-content">
+        <span class="category-badge">${categories[news.category]}</span>
+        <h3>${news.title}</h3>
+        <p>${news.desc.substring(0, 130)}${news.desc.length > 130 ? "…" : ""}</p>
+      </div>
+    </article>
+  `).join('');
+
+  // افزودن event listener به کارت‌ها
+  document.querySelectorAll('.news-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      const link = card.dataset.link;
+      const title = card.dataset.title;
+      const image = card.dataset.image;
+
+      openModal(link, title, image);
+    });
+  });
+}
+
+async function openModal(url, title, image) {
+  const modalTitle = document.getElementById('modal-title');
+  const modalContent = document.getElementById('modal-content');
+  const originalLink = document.getElementById('original-link');
+
+  modalTitle.textContent = title;
+  originalLink.href = url;
+
+  // نمایش لودر
+  modalContent.innerHTML = '<div class="loader">در حال بارگذاری خبر...</div>';
+
+  try {
+    // درخواست به Proxy برای بارگذاری صفحه
+    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
+    const data = await response.json();
+    
+    if (data.contents) {
+      // پاک‌سازی محتوا و نمایش
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+
+      // حذف اسکریپت‌ها و استایل‌های غیرضروری
+      const body = doc.body;
+      body.querySelectorAll('script, style, iframe, noscript, header, footer, nav').forEach(el => el.remove());
+
+      // تنظیم عنوان و تصویر
+      if (image) {
+        modalContent.innerHTML = `<img src="${image}" alt="تصویر خبر" class="modal-image"><br><br>`;
+      } else {
+        modalContent.innerHTML = '';
+      }
+
+      // اضافه کردن محتوای خبر
+      modalContent.innerHTML += body.innerHTML;
+
+      // تنظیمات ظاهری
+      modalContent.style.padding = '20px';
+      modalContent.style.lineHeight = '1.8';
+
+      // حذف لینک‌های داخلی (تا کاربر از سایت شما خارج نشود)
+      modalContent.querySelectorAll('a').forEach(a => {
+        a.target = '_self';
+        a.onclick = (e) => {
+          e.preventDefault();
+          openModal(a.href, a.textContent, '');
+        };
+      });
+
+    } else {
+      modalContent.innerHTML = '<p>خطا در بارگذاری خبر. لطفاً <a href="' + url + '" target="_blank">در سایت اصلی مشاهده کنید</a>.</p>';
+    }
+
+  } catch (error) {
+    console.error('Error loading article:', error);
+    modalContent.innerHTML = '<p>خطا در بارگذاری خبر. لطفاً <a href="' + url + '" target="_blank">در سایت اصلی مشاهده کنید</a>.</p>';
+  }
+
+  document.getElementById('modal-overlay').style.display = "flex";
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').style.display = "none";
+  document.body.style.overflow = "auto";
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderTabs();
+  loadNews();
+});
