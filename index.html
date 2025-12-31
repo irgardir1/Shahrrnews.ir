@@ -22,6 +22,22 @@
     </div>
   </main>
 
+  <!-- Modal -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div class="modal-header">
+        <h2 id="modal-title">در حال بارگذاری...</h2>
+      </div>
+      <div class="modal-body">
+        <div id="modal-content" class="modal-text">
+          <div class="loader">در حال بارگذاری خبر...</div>
+        </div>
+        <a id="original-link" target="_blank" rel="noopener" class="modal-read-more">مشاهده در سایت اصلی</a>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
