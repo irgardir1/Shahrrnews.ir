@@ -76,6 +76,14 @@ Object.keys(categories).forEach((key, i) => {
 });
 
 /* =======================
+   دریافت تصویر هوشمند بر اساس عنوان + دسته
+======================= */
+function getSmartImage(title, category) {
+  const keyword = encodeURIComponent(category + " " + title);
+  return `https://source.unsplash.com/600x400/?${keyword}`;
+}
+
+/* =======================
    بارگذاری دسته
 ======================= */
 async function loadCategory(catKey, btn) {
@@ -111,13 +119,13 @@ async function loadCategory(catKey, btn) {
   }
 
   items.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-  renderNews(items);
+  renderNews(items, catKey);
 }
 
 /* =======================
    نمایش خبرها
 ======================= */
-function renderNews(items) {
+function renderNews(items, catKey) {
   newsEl.innerHTML = "";
 
   if (!items.length) {
@@ -130,10 +138,12 @@ function renderNews(items) {
       breakingEl.textContent = "🔔 خبر فوری: " + item.title;
     }
 
+    const imgUrl = item.thumbnail || getSmartImage(item.title, categories[catKey] || 'news');
+
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <img src="${item.thumbnail || `https://source.unsplash.com/600x400/?news,${idx}`}">
+      <img src="${imgUrl}">
       <div class="content">
         <h3>${item.title}</h3>
         <div class="meta">
